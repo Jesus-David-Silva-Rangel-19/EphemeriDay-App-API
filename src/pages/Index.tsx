@@ -27,8 +27,7 @@ const fetchAnniversaries = async (date: Date) => {
   
   const response = await fetch(url, {
     headers: {
-      'Authorization': 'Bearer YOUR-MEDIAWIKI-TOKEN',
-      'Api-User-Agent': 'EphemeriDay/1.0'
+      'Api-User-Agent': 'EphemeriDay/1.0 (https://ephemeriday.com; info@ephemeriday.com)'
     }
   });
   
