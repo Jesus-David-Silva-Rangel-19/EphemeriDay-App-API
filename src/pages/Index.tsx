@@ -1,10 +1,10 @@
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import DateNavigation from "@/components/DateNavigation";
 import AnniversaryCard from "@/components/AnniversaryCard";
-import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
@@ -12,16 +12,42 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { format } from "date-fns";
 
-const mockAnniversaries = [
-  { year: 1492, description: "Cristóbal Colón llega a América." },
-  { year: 1810, description: "Inicio de la independencia de México con el Grito de Dolores." },
-  { year: 1945, description: "Finaliza la Segunda Guerra Mundial con la rendición de Japón." },
-];
+interface WikiEvent {
+  text: string;
+  year: string;
+  pages: Array<{ title: string }>;
+}
+
+const fetchAnniversaries = async (date: Date) => {
+  const month = format(date, "MM");
+  const day = format(date, "dd");
+  const url = `https://api.wikimedia.org/feed/v1/wikipedia/es/onthisday/all/${month}/${day}`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': 'Bearer YOUR-MEDIAWIKI-TOKEN',
+      'Api-User-Agent': 'EphemeriDay/1.0'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Error al cargar las efemérides');
+  }
+  
+  const data = await response.json();
+  return data.events as WikiEvent[];
+};
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const { data: events, isLoading, error } = useQuery({
+    queryKey: ['anniversaries', format(currentDate, 'yyyy-MM-dd')],
+    queryFn: () => fetchAnniversaries(currentDate),
+  });
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -40,13 +66,19 @@ const Index = () => {
           onCalendarOpen={() => setIsCalendarOpen(true)}
         />
         <div className="space-y-6 mt-8">
-          {mockAnniversaries.map((anniversary, index) => (
-            <AnniversaryCard
-              key={index}
-              year={anniversary.year}
-              description={anniversary.description}
-            />
-          ))}
+          {isLoading ? (
+            <p className="text-center font-labrada text-gray-600">Cargando efemérides...</p>
+          ) : error ? (
+            <p className="text-center font-labrada text-red-600">Error al cargar las efemérides. Por favor, intente más tarde.</p>
+          ) : events ? (
+            events.map((event, index) => (
+              <AnniversaryCard
+                key={index}
+                year={parseInt(event.year)}
+                description={event.text}
+              />
+            ))
+          ) : null}
         </div>
       </main>
       <Footer />

@@ -7,7 +7,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col gap-2 items-center justify-center">
           <p className="text-sm font-labrada text-gray-600 animate-fade-in">
-            Apoyamos a Ucrania 🇺🇦 en la agresión rusa 🇷🇺
+            Apoyamos a Ucrania en la agresión rusa
           </p>
           <div className="flex items-center gap-3">
             <CalendarDays className="w-8 h-8 text-ephemeri" />
